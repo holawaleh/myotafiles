@@ -9,8 +9,8 @@ def ota_check(request):
         return JsonResponse({"error": "missing parameters"}, status=400)
 
     firmware = (
-        Firmware.objects.filter(device_type=device, is_active=True)
-
+        Firmware.objects
+        .filter(device_type=device, is_active=True)
         .order_by("-created_at")
         .first()
     )
@@ -19,10 +19,12 @@ def ota_check(request):
         return JsonResponse({"update": False})
 
     if firmware.version != version:
+        firmware_url = request.build_absolute_uri(firmware.bin_file.url)
+
         return JsonResponse({
             "update": True,
             "version": firmware.version,
-            "url": firmware.bin_file.url
+            "url": firmware_url
         })
 
     return JsonResponse({"update": False})
