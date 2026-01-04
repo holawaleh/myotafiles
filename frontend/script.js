@@ -81,6 +81,7 @@ function renderFirmwareList(list) {
           <th>Status</th>
           <th>Uploaded</th>
           <th>File</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -99,12 +100,43 @@ function renderFirmwareList(list) {
                 Download
               </a>
             </td>
+            <td>
+              ${
+                fw.is_active
+                  ? "<span class='subtitle'>—</span>"
+                  : `<button class="btn-secondary" onclick="rollbackFirmware(${fw.id})">
+                       Rollback
+                     </button>`
+              }
+            </td>
           </tr>
         `).join("")}
       </tbody>
     </table>
   `;
 }
+
+async function rollbackFirmware(firmwareId) {
+  if (!confirm("Rollback to this firmware? Devices will update automatically.")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/firmware/${firmwareId}/activate/`,
+      { method: "POST" }
+    );
+
+    if (!res.ok) throw new Error("Rollback failed");
+
+    loadFirmwares();
+    loadOTALogs();
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+
 
 async function handleUpload() {
   const deviceType = document.getElementById("deviceType").value.trim();
