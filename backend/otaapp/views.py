@@ -4,7 +4,7 @@ from rest_framework import status
 from django.http import JsonResponse
 
 from .serializers import FirmwareSerializer, OTALogSerializer
-from .models import Firmware
+from .models import Firmware, OTALog
 
 
 class FirmwareListCreate(APIView):
@@ -56,12 +56,18 @@ def ota_check(request):
     })
 
 class OTALogCreate(APIView):
-    def post(self, request):
-        serializer = OTALogSerializer(data=request.data)
+       def get(self, request):
+        logs = OTALog.objects.all().order_by("-created_at")[:100]
+        serializer = OTALogSerializer(logs, many=True)
+        return Response(serializer.data)
+
+        def post(self, request):
+            serializer = OTALogSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"ok": True})
         return Response(serializer.errors, status=400)
+
 
 class ActivateFirmware(APIView):
     def post(self, request, firmware_id):

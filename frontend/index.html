@@ -2,158 +2,106 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>OTA Firmware Manager</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <div id="app">
-    <!-- Login Page -->
-    <div id="loginPage" class="page active">
-      <div class="login-container">
-        <div class="login-card">
-          <h1 class="login-title">OTA Firmware Manager</h1>
-          <p class="login-subtitle">Sign in to manage ESP32 firmware</p>
 
-          <div id="loginError" class="error-banner hidden">
-            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span id="loginErrorText"></span>
-            <button onclick="closeLoginError()" class="error-close">×</button>
-          </div>
+  <!-- ================= LOGIN PAGE ================= -->
+  <div id="loginPage" class="page active">
+    <div class="login-container">
+      <div class="login-card">
+        <h2 class="login-title">OTA Manager</h2>
+        <p class="login-subtitle">Sign in to manage firmware</p>
 
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" placeholder="Enter username" autocomplete="username">
-          </div>
+        <input type="text" placeholder="Username" />
+        <input type="password" placeholder="Password" />
 
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
-          </div>
+        <button class="btn-primary" onclick="handleLogin()">Sign In</button>
 
-          <button id="loginBtn" class="btn-primary" onclick="handleLogin()">
-            <span id="loginBtnText">Sign In</span>
-            <svg id="loginSpinner" class="spinner hidden" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
-            </svg>
-          </button>
-
-          <p class="login-note">Login to update your Firmware.</p>
-        </div>
+        <p class="login-note">
+          Demo login – authentication will be added later.
+        </p>
       </div>
     </div>
+  </div>
 
-    <!-- Dashboard Page -->
-    <div id="dashboardPage" class="page">
-      <div class="container">
-        <!-- Header -->
-        <div class="header">
-          <div>
-            <h1 class="main-title">OTA Firmware Manager</h1>
-            <p class="subtitle">Manage ESP32 firmware updates over-the-air</p>
-          </div>
-          <button onclick="handleLogout()" class="btn-secondary">Logout</button>
+  <!-- ================= DASHBOARD PAGE ================= -->
+  <div id="dashboardPage" class="page">
+    <div class="container">
+
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <div class="main-title">OTA Firmware Dashboard</div>
+          <div class="subtitle">ESP32 Over-The-Air Management</div>
         </div>
+        <button class="btn-primary" onclick="handleLogout()">Logout</button>
+      </div>
 
-        <!-- Error Banner -->
-        <div id="errorBanner" class="error-banner hidden">
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span id="errorText"></span>
-          <button onclick="closeError()" class="error-close">×</button>
-        </div>
+      <!-- Error banner -->
+      <div id="errorBanner" class="error-banner hidden">
+        <span id="errorText"></span>
+        <button onclick="closeError()">✕</button>
+      </div>
 
-        <!-- Upload Section -->
-        <div class="card">
-          <h2 class="card-title">
-            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            Upload Firmware
-          </h2>
+      <!-- ================= Upload Firmware ================= -->
+      <div class="card">
+        <div class="card-title">Upload Firmware</div>
 
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="deviceType">Device Type</label>
-              <input type="text" id="deviceType" value="esp_test" placeholder="esp_test">
-            </div>
-
-            <div class="form-group">
-              <label for="version">Version</label>
-              <input type="text" id="version" placeholder="1.0.2">
-            </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Device Type</label>
+            <input id="deviceType" value="esp_test" />
           </div>
 
           <div class="form-group">
-            <label for="binFile">Firmware Binary (.bin)</label>
-            <input type="file" id="binFile" accept=".bin">
+            <label>Version</label>
+            <input id="version" placeholder="e.g. 1.0.3" />
           </div>
 
-          <div class="checkbox-group">
-            <input type="checkbox" id="isActive" checked>
-            <label for="isActive">Set as active firmware (ESP32 devices will update to this)</label>
+          <div class="form-group">
+            <label>Firmware (.bin)</label>
+            <input type="file" id="binFile" />
           </div>
 
-          <button id="uploadBtn" class="btn-primary" onclick="handleUpload()">
-            <svg id="uploadIcon" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            <svg id="uploadSpinner" class="spinner hidden" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
-            </svg>
-            <span id="uploadBtnText">Upload Firmware</span>
-          </button>
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="isActive" />
+            <label for="isActive">Set as active firmware</label>
+          </div>
         </div>
 
-        <!-- Firmware List -->
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">Firmware List</h2>
-            <button id="refreshBtn" class="btn-secondary" onclick="loadFirmwares()">
-              <svg id="refreshIcon" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                </path>
-              </svg>
-              Refresh
-            </button>
-          </div>
+        <br />
+        <button id="uploadBtn" class="btn-primary" onclick="handleUpload()">
+          Upload Firmware
+        </button>
+      </div>
 
+      <!-- ================= Firmware List ================= -->
+      <div class="card">
+        <div class="card-title">Firmware List</div>
+
+        <div class="table-container">
           <div id="firmwareList">
-            <div class="loading">
-              <svg class="spinner" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-              </svg>
-              <p>Loading firmware...</p>
-            </div>
+            <p class="subtitle">Loading firmware…</p>
           </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-          <p><strong>Backend:</strong> https://myotafiles.onrender.com</p>
-          <p>Only one firmware per device type should be active. ESP32 devices will automatically update to the active
-            firmware.</p>
         </div>
       </div>
+
+      <!-- ================= OTA LOGS ================= -->
+      <div class="card">
+        <div class="card-title">OTA Activity Logs</div>
+
+        <div class="table-container">
+          <div id="otaLogList">
+            <p class="subtitle">Loading OTA logs…</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 

@@ -1,30 +1,32 @@
-const API_BASE = 'https://myotafiles.onrender.com';
+const API_BASE = "https://myotafiles.onrender.com";
 
-let firmwares = [];
+/* ================= AUTH FLOW ================= */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   checkLoginStatus();
-  document.getElementById('isActive').addEventListener('change', updateActiveWarning);
+  document.getElementById("isActive")
+    .addEventListener("change", updateActiveWarning);
 });
 
 function checkLoginStatus() {
-  const loggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+  const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
   loggedIn ? showDashboard() : showLogin();
 }
 
 function showLogin() {
-  document.getElementById('loginPage').classList.add('active');
-  document.getElementById('dashboardPage').classList.remove('active');
+  document.getElementById("loginPage").classList.add("active");
+  document.getElementById("dashboardPage").classList.remove("active");
 }
 
 function showDashboard() {
-  document.getElementById('loginPage').classList.remove('active');
-  document.getElementById('dashboardPage').classList.add('active');
+  document.getElementById("loginPage").classList.remove("active");
+  document.getElementById("dashboardPage").classList.add("active");
   loadFirmwares();
+  loadOTALogs();
 }
 
 function handleLogin() {
-  sessionStorage.setItem('isLoggedIn', 'true');
+  sessionStorage.setItem("isLoggedIn", "true");
   showDashboard();
 }
 
@@ -33,91 +35,159 @@ function handleLogout() {
   showLogin();
 }
 
-/* UI helpers */
+/* ================= UI HELPERS ================= */
+
 function showError(msg) {
-  document.getElementById('errorText').textContent = msg;
-  document.getElementById('errorBanner').classList.remove('hidden');
+  document.getElementById("errorText").textContent = msg;
+  document.getElementById("errorBanner").classList.remove("hidden");
 }
 
 function closeError() {
-  document.getElementById('errorBanner').classList.add('hidden');
+  document.getElementById("errorBanner").classList.add("hidden");
 }
 
 function updateActiveWarning() {
-  const uploadBtn = document.getElementById('uploadBtn');
-  const isActive = document.getElementById('isActive').checked;
-  uploadBtn.classList.toggle('active-warning', isActive);
+  const btn = document.getElementById("uploadBtn");
+  const active = document.getElementById("isActive").checked;
+  btn.classList.toggle("active-warning", active);
 }
 
-/* Firmware */
+/* ================= FIRMWARE ================= */
+
 async function loadFirmwares() {
   try {
     const res = await fetch(`${API_BASE}/api/firmware/`);
-    if (!res.ok) throw new Error('Failed to load firmware');
-    firmwares = await res.json();
-    renderFirmwareList();
+    if (!res.ok) throw new Error("Failed to load firmware");
+    const data = await res.json();
+    renderFirmwareList(data);
   } catch (err) {
-    showError(err.message + ' (Render may be sleeping)');
+    showError(err.message);
   }
 }
 
-function renderFirmwareList() {
-  const list = document.getElementById('firmwareList');
-  if (!firmwares.length) {
-    list.innerHTML = '<p class="empty-state">No firmware uploaded yet.</p>';
+function renderFirmwareList(list) {
+  if (!list.length) {
+    document.getElementById("firmwareList").innerHTML =
+      "<p class='subtitle'>No firmware uploaded yet</p>";
     return;
   }
 
-  list.innerHTML = `
+  document.getElementById("firmwareList").innerHTML = `
     <table>
       <thead>
-        <tr><th>Device</th><th>Version</th><th>Status</th><th>Uploaded</th><th>File</th></tr>
+        <tr>
+          <th>Device</th>
+          <th>Version</th>
+          <th>Status</th>
+          <th>Uploaded</th>
+          <th>File</th>
+        </tr>
       </thead>
       <tbody>
-        ${firmwares.map(fw => `
+        ${list.map(fw => `
           <tr>
             <td>${fw.device_type}</td>
             <td>${fw.version}</td>
-            <td>${fw.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Inactive</span>'}</td>
+            <td>
+              <span class="badge ${fw.is_active ? "badge-active" : "badge-inactive"}">
+                ${fw.is_active ? "Active" : "Inactive"}
+              </span>
+            </td>
             <td>${new Date(fw.created_at).toLocaleString()}</td>
-            <td><a href="${fw.bin_file}" target="_blank" class="download-link">Download</a></td>
+            <td>
+              <a href="${fw.bin_file}" target="_blank" class="download-link">
+                Download
+              </a>
+            </td>
           </tr>
-        `).join('')}
+        `).join("")}
       </tbody>
-    </table>`;
+    </table>
+  `;
 }
 
 async function handleUpload() {
-  const deviceType = document.getElementById('deviceType').value.trim();
-  const version = document.getElementById('version').value.trim();
-  const binFile = document.getElementById('binFile').files[0];
-  const isActive = document.getElementById('isActive').checked;
+  const deviceType = document.getElementById("deviceType").value.trim();
+  const version = document.getElementById("version").value.trim();
+  const file = document.getElementById("binFile").files[0];
+  const isActive = document.getElementById("isActive").checked;
+  const btn = document.getElementById("uploadBtn");
 
-  if (!binFile || !version) {
-    showError('Version and .bin file required');
+  if (!file || !version) {
+    showError("Version and firmware file are required");
     return;
   }
 
-  const uploadBtn = document.getElementById('uploadBtn');
-  uploadBtn.disabled = true;
+  btn.disabled = true;
 
   const formData = new FormData();
-  formData.append('device_type', deviceType);
-  formData.append('version', version);
-  formData.append('is_active', isActive);
-  formData.append('bin_file', binFile);
+  formData.append("device_type", deviceType);
+  formData.append("version", version);
+  formData.append("is_active", isActive);
+  formData.append("bin_file", file);
 
   try {
     const res = await fetch(`${API_BASE}/api/firmware/`, {
-      method: 'POST',
+      method: "POST",
       body: formData
     });
-    if (!res.ok) throw new Error('Upload failed');
-    await loadFirmwares();
+    if (!res.ok) throw new Error("Upload failed");
     closeError();
+    loadFirmwares();
   } catch (err) {
     showError(err.message);
   } finally {
-    uploadBtn.disabled = false;
+    btn.disabled = false;
   }
+}
+
+/* ================= OTA LOGS ================= */
+
+async function loadOTALogs() {
+  try {
+    const res = await fetch(`${API_BASE}/api/ota/log/`);
+    if (!res.ok) throw new Error("Failed to load OTA logs");
+    const logs = await res.json();
+    renderOTALogs(logs);
+  } catch {
+    document.getElementById("otaLogList").innerHTML =
+      "<p class='subtitle'>No OTA logs available</p>";
+  }
+}
+
+function renderOTALogs(logs) {
+  if (!logs.length) {
+    document.getElementById("otaLogList").innerHTML =
+      "<p class='subtitle'>No OTA activity yet</p>";
+    return;
+  }
+
+  document.getElementById("otaLogList").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Device ID</th>
+          <th>Type</th>
+          <th>Version</th>
+          <th>Status</th>
+          <th>Time</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${logs.map(log => `
+          <tr>
+            <td>${log.device_id}</td>
+            <td>${log.device_type}</td>
+            <td>${log.from_version} → ${log.to_version}</td>
+            <td class="${log.status === "success" ? "log-success" : "log-failure"}">
+              ${log.status.toUpperCase()}
+            </td>
+            <td>${new Date(log.created_at).toLocaleString()}</td>
+            <td class="log-message">${log.message || "-"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
 }

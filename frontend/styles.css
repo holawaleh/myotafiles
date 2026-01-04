@@ -447,3 +447,18 @@ td {
     padding: 0.5rem;
   }
 }
+
+.log-success {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.log-failure {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.log-message {
+  font-size: 13px;
+  color: #9ca3af;
+}
