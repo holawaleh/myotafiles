@@ -90,7 +90,7 @@ function handleLogout() {
     document.getElementById('password').value = '';
     
     showLogin();
-}
+} 
 
 // Show login error
 function showLoginError(message) {
