@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'otaapp',
     'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -39,10 +40,19 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://otafiles.vercel.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://otafiles.vercel.app",
+]
+
 
 ROOT_URLCONF = 'otaproject.urls'
 
