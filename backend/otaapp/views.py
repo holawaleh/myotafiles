@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
 
-from .serializers import FirmwareSerializer
+from .serializers import FirmwareSerializer, OTALogSerializer
 from .models import Firmware
 
 
@@ -54,3 +54,29 @@ def ota_check(request):
         "version": fw.version,
         "url": request.build_absolute_uri(fw.bin_file.url),
     })
+
+class OTALogCreate(APIView):
+    def post(self, request):
+        serializer = OTALogSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"ok": True})
+        return Response(serializer.errors, status=400)
+
+class ActivateFirmware(APIView):
+    def post(self, request, firmware_id):
+        try:
+            fw = Firmware.objects.get(id=firmware_id)
+        except Firmware.DoesNotExist:
+            return Response({"error": "Firmware not found"}, status=404)
+
+        # deactivate others
+        Firmware.objects.filter(
+            device_type=fw.device_type,
+            is_active=True
+        ).update(is_active=False)
+
+        fw.is_active = True
+        fw.save()
+
+        return Response({"ok": True})
