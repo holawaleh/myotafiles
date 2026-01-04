@@ -138,6 +138,7 @@ async function rollbackFirmware(firmwareId) {
 
 
 
+
 async function handleUpload() {
   const deviceType = document.getElementById("deviceType").value.trim();
   const version = document.getElementById("version").value.trim();
