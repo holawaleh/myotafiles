@@ -15,10 +15,21 @@ class FirmwareListCreate(APIView):
 
     def post(self, request):
         serializer = FirmwareSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        is_active = serializer.validated_data.get("is_active", False)
+        device_type = serializer.validated_data.get("device_type")
+
+        if is_active:
+            Firmware.objects.filter(
+                device_type=device_type,
+                is_active=True
+            ).update(is_active=False)
+
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 def ota_check(request):
